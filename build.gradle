@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "6.5.1"
+    id 'war'
+}
+
+group = 'org.example'
+
+repositories {
+    mavenCentral()
+}
+
+war {
+    archiveBaseName = "clv-house"
+}
+
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
+
+
+    implementation 'org.postgresql:postgresql:42.6.0'
+    implementation 'org.springframework:spring-context:6.1.2'
+    implementation 'org.springframework:spring-webmvc:6.1.2'
+    implementation 'org.springframework:spring-orm:6.1.2'
+    implementation 'org.springframework:spring-jdbc:6.1.2'
+    implementation 'org.hibernate.orm:hibernate-core:6.4.1.Final'
+    implementation 'org.hibernate.orm:hibernate-hikaricp:6.4.1.Final'
+    implementation 'org.yaml:snakeyaml:2.2'
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+
+
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    testImplementation 'org.springframework:spring-test:6.1.2'
+    testImplementation "org.testcontainers:postgresql:1.19.3"
+    testImplementation "org.testcontainers:junit-jupiter:1.19.3"
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+}
+
+test {
+    useJUnitPlatform()
+}
