@@ -69,22 +69,14 @@ public class PersonController {
     @PutMapping("/{uuid}")
     public ResponseEntity<PersonResponse> updatePersonByUUID(
             @PathVariable("uuid") UUID ownerUUID,
-            @RequestBody(required = false) PersonRequest personRequest) {
-
-        if (personRequest == null) {
-            throw new InvalidRequestException();
-        }
+            @RequestBody PersonRequest personRequest) {
 
         personService.update(personRequest, ownerUUID);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public ResponseEntity<PersonResponse> createPerson(@RequestBody(required = false) @Valid PersonRequest personRequest) {
-
-        if (personRequest == null) {
-            throw new InvalidRequestException();
-        }
+    public ResponseEntity<PersonResponse> createPerson(@RequestBody @Valid PersonRequest personRequest) {
 
         personService.create(personRequest);
         return ResponseEntity.noContent().build();

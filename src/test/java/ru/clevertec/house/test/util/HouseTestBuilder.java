@@ -20,7 +20,7 @@ public class HouseTestBuilder implements TestBuilder<House> {
     private Long id = 666L;
 
     private UUID uuid = UUID.fromString("c28c0367-f754-4be6-b53b-4586ea361503");
-    private Integer area = 1111;
+    private Double area = 1111.11;
     private String country = "Belarus";
     private String city = "Minsk";
     private String street = "Sovetskaya";

@@ -61,22 +61,15 @@ public class HouseController {
     @PutMapping("/{uuid}")
     public ResponseEntity<HouseResponse> updateHouseByUUID(
             @PathVariable("uuid") UUID ownerUUID,
-            @RequestBody(required = false) HouseRequest houseRequest) {
-
-        if (houseRequest == null) {
-            throw new InvalidRequestException();
-        }
+            @RequestBody HouseRequest houseRequest) {
 
         houseService.update(houseRequest, ownerUUID);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public ResponseEntity<HouseResponse> createHouse(@RequestBody(required = false)
+    public ResponseEntity<HouseResponse> createHouse(@RequestBody
                                                      @Valid HouseRequest houseRequest) {
-        if (houseRequest == null) {
-            throw new InvalidRequestException();
-        }
 
         houseService.create(houseRequest);
         return ResponseEntity.noContent().build();

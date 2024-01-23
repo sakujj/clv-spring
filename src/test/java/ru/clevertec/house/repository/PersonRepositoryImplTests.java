@@ -11,6 +11,7 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.house.entity.House;
 import ru.clevertec.house.entity.Person;
+import ru.clevertec.house.enumeration.Sex;
 import ru.clevertec.house.test.util.PersonTestBuilder;
 
 import java.time.LocalDateTime;
@@ -55,7 +56,7 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
                 .withUuid(uuidToSearchBy)
                 .withName("Pavel")
                 .withSurname("Ivanov")
-                .withSex("M")
+                .withSex(Sex.MALE)
                 .withPassportSeries("MP")
                 .withPassportNumber("1234567890123")
                 .withCreateDate(LocalDateTime.parse("2020-09-09T10:00:00.000"))
@@ -146,7 +147,7 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
                 .withUuid(uuid)
                 .withName("Pavel")
                 .withSurname("Ivanov")
-                .withSex("M")
+                .withSex(Sex.MALE)
                 .withPassportSeries("MP")
                 .withPassportNumber("1234567890123")
                 .withHouseOfResidence(House.builder()

@@ -41,6 +41,9 @@ dependencies {
 
     compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 
+    // validator bean is not loaded without this
+    testImplementation 'org.glassfish:jakarta.el:5.0.0-M1'
+
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
     testImplementation 'org.springframework:spring-test:6.1.2'

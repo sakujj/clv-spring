@@ -54,7 +54,7 @@ public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
         House expected = HouseTestBuilder.aHouse()
                 .withId(1L)
                 .withUuid(uuidToSearchBy)
-                .withArea(64)
+                .withArea(64d)
                 .withCountry("Belarus")
                 .withCity("Grodno")
                 .withStreet("Lenina st.")
