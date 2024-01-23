@@ -1,12 +1,14 @@
 package ru.clevertec.house.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.clevertec.house.dto.HouseRequest;
 import ru.clevertec.house.dto.HouseResponse;
-import ru.clevertec.house.mapper.HouseMapper;
+import ru.clevertec.house.dto.PersonResponse;
+import ru.clevertec.house.exception.InvalidRequestException;
 import ru.clevertec.house.service.HouseService;
 
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @RequestMapping("/houses")
 @RequiredArgsConstructor
 public class HouseController {
+
     private static final int DEFAULT_SIZE_PER_PAGE = 15;
 
     private final HouseService houseService;
@@ -38,13 +41,13 @@ public class HouseController {
         return ResponseEntity.ok(found);
     }
 
-    @GetMapping("/owner/{ownerUUID}")
-    public ResponseEntity<List<HouseResponse>> findAllHousesByOwnerUUID(
-            @PathVariable("ownerUUID") UUID ownerUUID,
+    @GetMapping("/{houseUUID}/residents")
+    public ResponseEntity<List<PersonResponse>> findAllResidentsByHouseUUID(
+            @PathVariable("houseUUID") UUID houseUUID,
             @RequestParam(value = "page", defaultValue = "1") Integer page,
             @RequestParam(value = "size", defaultValue = "" + DEFAULT_SIZE_PER_PAGE) Integer size) {
 
-        List<HouseResponse> found = houseService.findAllByOwnerUUID(ownerUUID, page, size);
+        List<PersonResponse> found = houseService.findAllResidentsByHouseUUID(houseUUID, page, size);
         return ResponseEntity.ok(found);
     }
 
@@ -58,14 +61,22 @@ public class HouseController {
     @PutMapping("/{uuid}")
     public ResponseEntity<HouseResponse> updateHouseByUUID(
             @PathVariable("uuid") UUID ownerUUID,
-            @RequestBody HouseRequest houseRequest) {
+            @RequestBody(required = false) HouseRequest houseRequest) {
+
+        if (houseRequest == null) {
+            throw new InvalidRequestException();
+        }
 
         houseService.update(houseRequest, ownerUUID);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public ResponseEntity<HouseResponse> createHouse(@RequestBody HouseRequest houseRequest) {
+    public ResponseEntity<HouseResponse> createHouse(@RequestBody(required = false)
+                                                     @Valid HouseRequest houseRequest) {
+        if (houseRequest == null) {
+            throw new InvalidRequestException();
+        }
 
         houseService.create(houseRequest);
         return ResponseEntity.noContent().build();

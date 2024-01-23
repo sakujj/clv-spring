@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import ru.clevertec.house.dto.PersonRequest;
 import ru.clevertec.house.dto.PersonResponse;
-import ru.clevertec.house.model.Person;
+import ru.clevertec.house.entity.Person;
 import ru.clevertec.house.test.util.PersonTestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;

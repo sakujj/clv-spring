@@ -1,24 +1,18 @@
 package ru.clevertec.house.repository;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-import ru.clevertec.house.config.ApplicationConfig;
-import ru.clevertec.house.model.House;
-import ru.clevertec.house.model.Person;
+import ru.clevertec.house.entity.House;
+import ru.clevertec.house.entity.Person;
 import ru.clevertec.house.test.util.HouseTestBuilder;
 
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Rollback
 @Transactional
-public class HouseRepositoryTests extends AbstractDatabaseIntegrationTests {
+public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
     @Autowired
     private HouseRepository houseRepository;
 
@@ -79,23 +73,21 @@ public class HouseRepositoryTests extends AbstractDatabaseIntegrationTests {
 
     @ParameterizedTest
     @MethodSource
-    void shouldFindAllByOwnerUUIDPaginated(UUID uuidToFindBy, int page, int size, int expectedListLength) {
+    void shouldFindAllResidentsByHouseUUIDPaginated(UUID uuidToFindBy, int page, int size, int expectedListLength) {
         // given, when
-        List<House> actual = houseRepository.findAllByOwnerUUID(uuidToFindBy, page, size);
+        List<Person> actual = houseRepository.findAllResidentsByHouseUUID(uuidToFindBy, page, size);
 
         // then
         assertThat(actual.size()).isEqualTo(expectedListLength);
-
     }
 
-
-    static Stream<Arguments> shouldFindAllByOwnerUUIDPaginated() {
+    static Stream<Arguments> shouldFindAllResidentsByHouseUUIDPaginated() {
         return Stream.of(
-                Arguments.arguments(UUID.fromString("26df4783-5eae-4dd7-ae62-5249ea9c3c18"), 2, 2, 1),
-                Arguments.arguments(UUID.fromString("26df4783-5eae-4dd7-ae62-5249ea9c3c18"), 1, 5, 3),
-                Arguments.arguments(UUID.fromString("236d7005-b86b-4697-b783-5eec2bc04dfa"), 1, 4, 2),
-                Arguments.arguments(UUID.fromString("236d7005-b86b-4697-b783-5eec2bc04dfa"), 2, 1, 1),
-                Arguments.arguments(UUID.fromString("1dd72b7d-9296-457d-b3e6-7a33ffe3abb2"), 1, 7, 0)
+                Arguments.arguments(UUID.fromString("e89895ef-ca4c-433b-87e8-3ead2646fed1"), 1, 10, 0),
+                Arguments.arguments(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"), 1, 10, 3),
+                Arguments.arguments(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"), 2, 2, 1),
+                Arguments.arguments(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"), 2, 3, 0),
+                Arguments.arguments(UUID.fromString("01e311bf-ec36-47ca-91e6-e67c959c57cc"), 1, 10, 4)
         );
     }
 

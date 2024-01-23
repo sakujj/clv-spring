@@ -1,11 +1,22 @@
 package ru.clevertec.house.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.clevertec.house.dto.HouseResponse;
 import ru.clevertec.house.dto.PersonRequest;
 import ru.clevertec.house.dto.PersonResponse;
+import ru.clevertec.house.exception.InvalidRequestException;
 import ru.clevertec.house.service.PersonService;
 
 import java.util.List;
@@ -16,6 +27,7 @@ import java.util.UUID;
 @RequestMapping("/people")
 @RequiredArgsConstructor
 public class PersonController {
+
     private static final int DEFAULT_SIZE_PER_PAGE = 15;
 
     private final PersonService personService;
@@ -37,13 +49,13 @@ public class PersonController {
         return ResponseEntity.ok(found);
     }
 
-    @GetMapping("/houseOfResidence/{uuid}")
-    public ResponseEntity<List<PersonResponse>> findAllPeopleHouseOfResidenceUUID(
-            @PathVariable("uuid") UUID houseOfResidenceUUID,
+    @GetMapping("/{ownerUUID}/owned-houses")
+    public ResponseEntity<List<HouseResponse>> findAllPeopleHouseOfResidenceUUID(
+            @PathVariable("ownerUUID") UUID ownerUUID,
             @RequestParam(value = "page", defaultValue = "1") Integer page,
             @RequestParam(value = "size", defaultValue = "" + DEFAULT_SIZE_PER_PAGE) Integer size) {
 
-        List<PersonResponse> found = personService.findAllByHouseOfResidenceUUID(houseOfResidenceUUID, page, size);
+        List<HouseResponse> found = personService.findAllHousesByOwnerUUID(ownerUUID, page, size);
         return ResponseEntity.ok(found);
     }
 
@@ -57,14 +69,22 @@ public class PersonController {
     @PutMapping("/{uuid}")
     public ResponseEntity<PersonResponse> updatePersonByUUID(
             @PathVariable("uuid") UUID ownerUUID,
-            @RequestBody PersonRequest personRequest) {
+            @RequestBody(required = false) PersonRequest personRequest) {
+
+        if (personRequest == null) {
+            throw new InvalidRequestException();
+        }
 
         personService.update(personRequest, ownerUUID);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping
-    public ResponseEntity<PersonResponse> createPerson(@RequestBody PersonRequest personRequest) {
+    public ResponseEntity<PersonResponse> createPerson(@RequestBody(required = false) @Valid PersonRequest personRequest) {
+
+        if (personRequest == null) {
+            throw new InvalidRequestException();
+        }
 
         personService.create(personRequest);
         return ResponseEntity.noContent().build();

@@ -1,4 +1,4 @@
-package ru.clevertec.house.util;
+package ru.clevertec.house.constant;
 
 import lombok.experimental.UtilityClass;
 

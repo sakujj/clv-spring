@@ -15,6 +15,7 @@ import ru.clevertec.house.config.ApplicationConfig;
 @WebAppConfiguration
 @ContextConfiguration(classes = {ApplicationConfig.class})
 public abstract class AbstractDatabaseIntegrationTests {
+
     private static PostgreSQLContainer<?> postgres;
 
     static {
@@ -23,11 +24,6 @@ public abstract class AbstractDatabaseIntegrationTests {
                 .withUsername("postgres")
                 .withPassword("postgres");
         postgres.start();
-
-        var containerDelegate = new JdbcDatabaseDelegate(postgres, "");
-
-        ScriptUtils.runInitScript(containerDelegate, "db/ddl.sql");
-        ScriptUtils.runInitScript(containerDelegate, "db/dml.sql");
     }
 
     @DynamicPropertySource

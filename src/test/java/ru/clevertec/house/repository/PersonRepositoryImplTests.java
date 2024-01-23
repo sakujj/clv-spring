@@ -1,7 +1,6 @@
 package ru.clevertec.house.repository;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -9,12 +8,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-import ru.clevertec.house.config.ApplicationConfig;
-import ru.clevertec.house.model.House;
-import ru.clevertec.house.model.Person;
+import ru.clevertec.house.entity.House;
+import ru.clevertec.house.entity.Person;
 import ru.clevertec.house.test.util.PersonTestBuilder;
 
 import java.time.LocalDateTime;
@@ -28,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Rollback
 @Transactional
-public class PersonRepositoryTests extends AbstractDatabaseIntegrationTests {
+public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests {
     @Autowired
     private PersonRepository personRepository;
 
@@ -77,21 +73,22 @@ public class PersonRepositoryTests extends AbstractDatabaseIntegrationTests {
 
     @ParameterizedTest
     @MethodSource
-    void shouldFindAllByHouseOfResidenceUUIDPaginated(UUID uuidToFindBy, int page, int size, int expectedListLength) {
+    void shouldFindAllHousesByOwnerUUIDPaginated(UUID uuidToFindBy, int page, int size, int expectedListLength) {
         // given, when
-        List<Person> actual = personRepository.findAllByHouseOfResidenceUUID(uuidToFindBy, page, size);
+        List<House> actual = personRepository.findAllHousesByOwnerUUID(uuidToFindBy, page, size);
 
         // then
         assertThat(actual.size()).isEqualTo(expectedListLength);
+
     }
 
-    static Stream<Arguments> shouldFindAllByHouseOfResidenceUUIDPaginated() {
+    static Stream<Arguments> shouldFindAllHousesByOwnerUUIDPaginated() {
         return Stream.of(
-                Arguments.arguments(UUID.fromString("e89895ef-ca4c-433b-87e8-3ead2646fed1"), 1, 10, 0),
-                Arguments.arguments(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"), 1, 10, 3),
-                Arguments.arguments(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"), 2, 2, 1),
-                Arguments.arguments(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"), 2, 3, 0),
-                Arguments.arguments(UUID.fromString("01e311bf-ec36-47ca-91e6-e67c959c57cc"), 1, 10, 4)
+                Arguments.arguments(UUID.fromString("26df4783-5eae-4dd7-ae62-5249ea9c3c18"), 2, 2, 1),
+                Arguments.arguments(UUID.fromString("26df4783-5eae-4dd7-ae62-5249ea9c3c18"), 1, 5, 3),
+                Arguments.arguments(UUID.fromString("236d7005-b86b-4697-b783-5eec2bc04dfa"), 1, 4, 2),
+                Arguments.arguments(UUID.fromString("236d7005-b86b-4697-b783-5eec2bc04dfa"), 2, 1, 1),
+                Arguments.arguments(UUID.fromString("1dd72b7d-9296-457d-b3e6-7a33ffe3abb2"), 1, 7, 0)
         );
     }
 
@@ -114,6 +111,9 @@ public class PersonRepositoryTests extends AbstractDatabaseIntegrationTests {
         // given
         Person personToUpdate = PersonTestBuilder.aPerson()
                 .withUuid(UUID.fromString("95f3178e-f6a5-4ca6-b4f2-f0780a3f74b0"))
+                .withHouseOfResidence(House.builder()
+                        .uuid(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"))
+                        .build())
                 .build();
 
         LocalDateTime dateBeforeUpdate = LocalDateTime.now();
@@ -147,6 +147,11 @@ public class PersonRepositoryTests extends AbstractDatabaseIntegrationTests {
                 .withName("Pavel")
                 .withSurname("Ivanov")
                 .withSex("M")
+                .withPassportSeries("MP")
+                .withPassportNumber("1234567890123")
+                .withHouseOfResidence(House.builder()
+                        .uuid(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"))
+                        .build())
                 .build();
 
         LocalDateTime updateDateBeforeUpdate = personRepository.findByUUID(uuid).get()

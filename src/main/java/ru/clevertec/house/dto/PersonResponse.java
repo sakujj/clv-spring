@@ -3,6 +3,8 @@ package ru.clevertec.house.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
+import ru.clevertec.house.constant.ApplicationConstants;
+import ru.clevertec.house.enumeration.Sex;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,15 +15,15 @@ public class PersonResponse {
     private UUID uuid;
     private String name;
     private String surname;
-    private String sex;
+    private Sex sex;
     private String passportSeries;
     private String passportNumber;
     private UUID houseOfResidenceUUID;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApplicationConstants.DATE_TIME_FORMAT)
     private LocalDateTime createDate;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApplicationConstants.DATE_TIME_FORMAT)
     private LocalDateTime updateDate;
 }
 

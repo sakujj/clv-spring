@@ -1,13 +1,12 @@
 package ru.clevertec.house.test.util;
 
-import jakarta.persistence.*;
 import lombok.*;
 import ru.clevertec.house.dto.PersonRequest;
 import ru.clevertec.house.dto.PersonResponse;
-import ru.clevertec.house.model.House;
-import ru.clevertec.house.model.Person;
+import ru.clevertec.house.entity.House;
+import ru.clevertec.house.entity.Person;
+import ru.clevertec.house.enumeration.Sex;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +20,7 @@ public class PersonTestBuilder implements TestBuilder<Person> {
     private UUID uuid = UUID.fromString("7d031492-daad-4b76-83d5-9515d46328f9");
     private String name = "Pablo";
     private String surname = "Fernandez";
-    private String sex = "M";
+    private Sex sex = Sex.MALE;
 
     private String passportSeries = "LP";
 

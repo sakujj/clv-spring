@@ -1,18 +1,14 @@
 package ru.clevertec.house.test.util;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import ru.clevertec.house.model.House;
-import ru.clevertec.house.model.Person;
+import ru.clevertec.house.entity.House;
+import ru.clevertec.house.entity.Person;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @With

@@ -4,6 +4,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import liquibase.Liquibase;
+import liquibase.exception.LiquibaseException;
+import liquibase.integration.spring.SpringLiquibase;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -26,6 +32,16 @@ import java.util.Properties;
 @EnableTransactionManagement
 @PropertySource(factory = YamlPropertySourceFactory.class, value = "classpath:application.yml")
 public class ApplicationConfig {
+
+    @Bean
+    public Validator validator() {
+        Validator validator;
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            validator = factory.getValidator();
+        }
+        return validator;
+    }
+
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -59,6 +75,16 @@ public class ApplicationConfig {
     }
 
     @Bean
+    public SpringLiquibase liquibase(DataSource dataSource) throws LiquibaseException {
+        SpringLiquibase liquibase = new SpringLiquibase();
+        liquibase.setDataSource(dataSource);
+        liquibase.setChangeLog("classpath:db/changelog/changelog-root.yml");
+        liquibase.afterPropertiesSet();
+
+        return liquibase;
+    }
+
+    @Bean
     public EntityManager entityManager(EntityManagerFactory entityManagerFactory) {
         return entityManagerFactory.createEntityManager();
     }
@@ -67,7 +93,7 @@ public class ApplicationConfig {
     public EntityManagerFactory entityManagerFactory(DataSource dataSource, Environment env) {
         final LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
         factoryBean.setDataSource(dataSource);
-        factoryBean.setPackagesToScan("ru.clevertec.house.model");
+        factoryBean.setPackagesToScan("ru.clevertec.house.entity");
 
         final HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
         factoryBean.setJpaVendorAdapter(adapter);
