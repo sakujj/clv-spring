@@ -26,7 +26,7 @@ INSERT INTO Person("uuid",
                     ('31a64056-a2f4-49fb-a9e8-952f5f7d264f', 'Valeriya', 'Sidorova', 'W', 'KP', '9234567890123', '2020-09-09T10:00:00.000', '2020-09-09T10:00:00.000', 4),
                     ('457ee2c4-7032-4adc-a294-c75adf1dc2bf','Kseniya', 'Chigireva', 'W', 'OP', '0234567890123',  '2020-09-09T10:00:00.000', '2020-09-09T10:00:00.000', 5);
 
-INSERT INTO Owner_OwnedHouse(person_id, house_id) VALUES
+INSERT INTO owner_to_owned_house(person_id, house_id) VALUES
     (1, 1),
     (2, 1),
     (2, 2),

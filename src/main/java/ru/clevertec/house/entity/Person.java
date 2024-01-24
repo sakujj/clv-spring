@@ -50,7 +50,7 @@ public class Person {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "house_of_residence_id", nullable = false)
     private House houseOfResidence;
 
@@ -58,7 +58,7 @@ public class Person {
     @ToString.Exclude
     @ManyToMany
     @JoinTable(
-            name = "Owner_OwnedHouse",
+            name = "owner_to_owned_house",
             joinColumns = {@JoinColumn(name = "person_id")},
             inverseJoinColumns = {@JoinColumn(name = "house_id")}
     )

@@ -58,17 +58,6 @@ public class House {
     @Column(name = "create_date")
     private LocalDateTime createDate;
 
-    public House(Long id, UUID uuid, Double area, String country, String city, String street, Integer number, LocalDateTime createDate) {
-        this.id = id;
-        this.uuid = uuid;
-        this.area = area;
-        this.country = country;
-        this.city = city;
-        this.street = street;
-        this.number = number;
-        this.createDate = createDate;
-    }
-
     public static final class Fields {
         public static final String id = "id";
         public static final String uuid = "uuid";

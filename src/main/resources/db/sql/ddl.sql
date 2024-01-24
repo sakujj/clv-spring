@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS Person(
         UNIQUE(passport_series, passport_number)
 );
 
-CREATE TABLE IF NOT EXISTS Owner_OwnedHouse(
+CREATE TABLE IF NOT EXISTS owner_to_owned_house(
     person_id BIGINT REFERENCES Person(id) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
     house_id BIGINT REFERENCES House(id) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
 

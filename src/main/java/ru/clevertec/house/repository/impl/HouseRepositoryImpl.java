@@ -62,7 +62,7 @@ public class HouseRepositoryImpl implements HouseRepository {
 
         NativeQuery<House> query = session.createNativeQuery("""
                 SELECT h.id, h."uuid", h.area, h.country, h.city, h.street, h.number, h.create_date
-                    FROM Person p JOIN Owner_OwnedHouse o
+                    FROM Person p JOIN owner_to_owned_house o
                         ON p."uuid" = :ownerUUID AND p.id = person_id
                     JOIN House h
                         ON h.id = o.house_id
