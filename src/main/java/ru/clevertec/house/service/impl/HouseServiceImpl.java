@@ -50,11 +50,11 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
-    public List<PersonResponse> findAllResidentsByHouseUUID(UUID houseUUID, int page, int size) {
+    public List<HouseResponse> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size) {
         try {
-            return houseRepository.findAllResidentsByHouseUUID(houseUUID, page, size)
+            return houseRepository.findAllHousesByOwnerUUID(ownerUUID, page, size)
                     .stream()
-                    .map(personMapper::toResponse)
+                    .map(houseMapper::toResponse)
                     .toList();
         } catch (RuntimeException ex) {
             throw new ServiceException(ex.getMessage(), ex);

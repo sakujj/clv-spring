@@ -17,6 +17,7 @@ import ru.clevertec.house.dto.HouseResponse;
 import ru.clevertec.house.dto.PersonRequest;
 import ru.clevertec.house.dto.PersonResponse;
 import ru.clevertec.house.exception.InvalidRequestException;
+import ru.clevertec.house.service.HouseService;
 import ru.clevertec.house.service.PersonService;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class PersonController {
     private static final int DEFAULT_SIZE_PER_PAGE = 15;
 
     private final PersonService personService;
+    private final HouseService houseService;
 
     @GetMapping("/{uuid}")
     public ResponseEntity<PersonResponse> findPersonByUUID(@PathVariable("uuid") UUID uuid) {
@@ -55,7 +57,7 @@ public class PersonController {
             @RequestParam(value = "page", defaultValue = "1") Integer page,
             @RequestParam(value = "size", defaultValue = "" + DEFAULT_SIZE_PER_PAGE) Integer size) {
 
-        List<HouseResponse> found = personService.findAllHousesByOwnerUUID(ownerUUID, page, size);
+        List<HouseResponse> found = houseService.findAllHousesByOwnerUUID(ownerUUID, page, size);
         return ResponseEntity.ok(found);
     }
 

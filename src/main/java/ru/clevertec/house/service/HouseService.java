@@ -14,7 +14,7 @@ public interface HouseService {
 
     List<HouseResponse> findAll(int page, int size);
 
-    List<PersonResponse> findAllResidentsByHouseUUID(UUID houseUUID, int page, int size);
+    List<HouseResponse> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size);
 
     void deleteByUUID(UUID uuid);
 

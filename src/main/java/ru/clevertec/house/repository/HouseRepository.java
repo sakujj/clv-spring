@@ -13,7 +13,7 @@ public interface HouseRepository {
 
     List<House> findAll(int page, int size);
 
-    List<Person> findAllResidentsByHouseUUID(UUID houseUUID, int page, int size);
+    List<House> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size);
 
     boolean deleteByUUID(UUID uuid);
 

@@ -53,19 +53,18 @@ public class PersonRepositoryImpl implements PersonRepository {
     }
 
     @Override
-    public List<House> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size) {
+    public List<Person> findAllResidentsByHouseUUID(UUID houseUUID, int page, int size) {
         Session session = entityManager.unwrap(Session.class);
 
-        NativeQuery<House> query = session.createNativeQuery("""
-                SELECT h.id, h."uuid", h.area, h.country, h.city, h.street, h.number, h.create_date
-                    FROM Person p JOIN Owner_OwnedHouse o
-                        ON p."uuid" = :ownerUUID AND p.id = person_id
-                    JOIN House h
-                        ON h.id = o.house_id
+        NativeQuery<Person> query = session.createNativeQuery("""
+                SELECT p.id, p."uuid", p.name, p.surname, p.sex, p.passport_series, p.passport_number,
+                       p.create_date, p.update_date, p.house_of_residence_id
+                    FROM House h JOIN Person p
+                        ON h."uuid" = :residenceUUID AND h.id = p.house_of_residence_id
                 LIMIT :pagesize
-                OFFSET :offset""", House.class);
+                OFFSET :offset""", Person.class);
 
-        query.setParameter("ownerUUID", ownerUUID);
+        query.setParameter("residenceUUID", houseUUID);
         query.setParameter("pagesize", size);
         query.setParameter("offset", (page - 1) * size);
 

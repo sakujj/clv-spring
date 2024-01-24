@@ -11,9 +11,9 @@ public interface PersonRepository {
 
     Optional<Person> findByUUID(UUID uuid);
 
-    List<Person> findAll(int page, int size);
+    List<Person> findAllResidentsByHouseUUID(UUID houseUUID, int page, int size);
 
-    List<House> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size);
+    List<Person> findAll(int page, int size);
 
     boolean deleteByUUID(UUID uuid);
 
