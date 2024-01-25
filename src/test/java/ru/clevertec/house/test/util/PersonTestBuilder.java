@@ -1,6 +1,9 @@
 package ru.clevertec.house.test.util;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.With;
 import ru.clevertec.house.dto.PersonRequest;
 import ru.clevertec.house.dto.PersonResponse;
 import ru.clevertec.house.entity.House;
@@ -8,7 +11,7 @@ import ru.clevertec.house.entity.Person;
 import ru.clevertec.house.enumeration.Sex;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @With
@@ -34,7 +37,7 @@ public class PersonTestBuilder implements TestBuilder<Person> {
             .uuid(UUID.fromString("9dffe39f-1926-4139-9db2-ad102429b55b"))
             .build();
 
-    private List<House> ownedHouses = null;
+    private Set<House> ownedHouses = null;
 
     public PersonResponse buildResponse() {
         return PersonResponse.builder()

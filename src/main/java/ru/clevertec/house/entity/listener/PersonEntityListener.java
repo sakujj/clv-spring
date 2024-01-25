@@ -1,6 +1,7 @@
 package ru.clevertec.house.entity.listener;
 
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import ru.clevertec.house.entity.Person;
 
 import java.time.LocalDateTime;
@@ -9,11 +10,7 @@ import java.util.UUID;
 public class PersonEntityListener {
 
     @PrePersist
-    void beforeCreate(Person person) {
-        if (person.getId() != null) {
-            return;
-        }
-
+    void beforePersist(Person person) {
         UUID randomUUID = UUID.randomUUID();
         person.setUuid(randomUUID);
 

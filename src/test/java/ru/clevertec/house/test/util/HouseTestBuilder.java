@@ -4,11 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.With;
+import ru.clevertec.house.dto.HouseRequest;
+import ru.clevertec.house.dto.HouseResponse;
 import ru.clevertec.house.entity.House;
 import ru.clevertec.house.entity.Person;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @With
@@ -26,7 +29,7 @@ public class HouseTestBuilder implements TestBuilder<House> {
     private String street = "Sovetskaya";
     private Integer number = 44;
 
-    private List<Person> owners = null;
+    private Set<Person> owners = null;
 
     private List<Person> residents = null;
 
@@ -35,5 +38,26 @@ public class HouseTestBuilder implements TestBuilder<House> {
     @Override
     public House build() {
         return new House(id, uuid, area, country, city, street, number, owners, residents, createDate);
+    }
+
+    public HouseResponse buildResponse() {
+        return HouseResponse.builder()
+                .uuid(uuid)
+                .area(area)
+                .city(city)
+                .street(street)
+                .country(country)
+                .number(number)
+                .build();
+    }
+
+    public HouseRequest buildRequest() {
+        return HouseRequest.builder()
+                .area(area)
+                .city(city)
+                .street(street)
+                .country(country)
+                .number(number)
+                .build();
     }
 }

@@ -1,10 +1,10 @@
 package ru.clevertec.house.service;
 
-import ru.clevertec.house.dto.HouseResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.clevertec.house.dto.PersonRequest;
 import ru.clevertec.house.dto.PersonResponse;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,13 +12,13 @@ public interface PersonService {
 
     Optional<PersonResponse> findByUUID(UUID uuid);
 
-    List<PersonResponse> findAll(int page, int size);
+    Page<PersonResponse> findAll(Pageable pageable);
 
-    List<PersonResponse> findAllResidentsByHouseUUID(UUID houseUUID, int page, int size);
+    Page<PersonResponse> findAllResidentsByHouseOfResidenceUUID(UUID houseOfResidenceUUID, Pageable pageable);
 
-    void deleteByUUID(UUID uuid);
+    long deleteByUUID(UUID uuid);
 
-    void update(PersonRequest personToUpdateRequest, UUID personUUID);
+    Optional<PersonResponse> update(PersonRequest personToUpdateRequest, UUID personUUID);
 
-    void create(PersonRequest personRequest);
+    PersonResponse create(PersonRequest personRequest);
 }

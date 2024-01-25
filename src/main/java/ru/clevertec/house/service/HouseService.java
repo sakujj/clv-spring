@@ -1,10 +1,10 @@
 package ru.clevertec.house.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.clevertec.house.dto.HouseRequest;
 import ru.clevertec.house.dto.HouseResponse;
-import ru.clevertec.house.dto.PersonResponse;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,13 +12,15 @@ public interface HouseService {
 
     Optional<HouseResponse> findByUUID(UUID uuid);
 
-    List<HouseResponse> findAll(int page, int size);
+    Page<HouseResponse> findAll(Pageable pageable);
 
-    List<HouseResponse> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size);
+    Page<HouseResponse> findAllHousesByOwnerUUID(UUID ownerUUID, Pageable pageable);
 
-    void deleteByUUID(UUID uuid);
+    void addNewOwnerToHouse(UUID houseUUID, UUID newOwnerUUID);
 
-    void update(HouseRequest houseToUpdateRequest, UUID houseUUID);
+    long deleteByUUID(UUID uuid);
 
-    void create(HouseRequest houseRequest);
+    Optional<HouseResponse> update(HouseRequest houseToUpdateRequest, UUID houseUUID);
+
+    HouseResponse create(HouseRequest houseRequest);
 }

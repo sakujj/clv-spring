@@ -1,4 +1,11 @@
 spring:
+  data:
+    web:
+      pageable:
+        page-parameter: page
+        size-parameter: size
+        default-page-size: 15
+        max-page-size: 250
   datasource:
     url: jdbc:postgresql://127.0.0.1:5432/house_db
     driverClassName: org.postgresql.Driver
