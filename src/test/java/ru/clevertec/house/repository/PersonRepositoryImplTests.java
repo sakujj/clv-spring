@@ -7,7 +7,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.house.entity.House;
 import ru.clevertec.house.entity.Person;
@@ -15,7 +21,6 @@ import ru.clevertec.house.enumeration.Sex;
 import ru.clevertec.house.test.util.PersonTestBuilder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -23,20 +28,25 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-@Rollback
 @Transactional
+@ActiveProfiles({"test", "test-no-cache"})
+@SpringBootTest
 public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests {
+
     @Autowired
     private PersonRepository personRepository;
 
-    @ParameterizedTest
+    @Autowired
+    private HouseRepository houseRepository;
+
     @MethodSource
+    @ParameterizedTest
     void shouldFindAllPaginated(int page, int size, int expectedListLength) {
         // given, when
-        List<Person> actual = personRepository.findAll(page, size);
+        Page<Person> actual = personRepository.findAll(PageRequest.of(page - 1, size));
 
         // then
-        assertThat(actual.size()).isEqualTo(expectedListLength);
+        assertThat(actual.getNumberOfElements()).isEqualTo(expectedListLength);
     }
 
     static Stream<Arguments> shouldFindAllPaginated() {
@@ -64,7 +74,7 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
                 .build();
 
         // when
-        Optional<Person> actual = personRepository.findByUUID(uuidToSearchBy);
+        Optional<Person> actual = personRepository.findByUuid(uuidToSearchBy);
 
         // then
         assertThat(actual).isPresent();
@@ -76,10 +86,12 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
     @MethodSource
     void shouldFindAllResidentsByHouseUUIDPaginated(UUID uuidToFindBy, int page, int size, int expectedListLength) {
         // given, when
-        List<Person> actual = personRepository.findAllResidentsByHouseUUID(uuidToFindBy, page, size);
+        Page<Person> actual = personRepository.findAllResidentsByHouseOfResidenceUuid(
+                uuidToFindBy,
+                PageRequest.of(page - 1, size));
 
         // then
-        assertThat(actual.size()).isEqualTo(expectedListLength);
+        assertThat(actual.getNumberOfElements()).isEqualTo(expectedListLength);
     }
 
     static Stream<Arguments> shouldFindAllResidentsByHouseUUIDPaginated() {
@@ -98,81 +110,48 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
         UUID uuidToDeleteBy = UUID.fromString("13985e64-a4f1-42eb-b23e-8d8c12a3c14b");
 
         // when
-        boolean actual = personRepository.deleteByUUID(uuidToDeleteBy);
-        Optional<Person> deletedPerson = personRepository.findByUUID(uuidToDeleteBy);
+        long actual = personRepository.deleteByUuid(uuidToDeleteBy);
+        Optional<Person> deletedPerson = personRepository.findByUuid(uuidToDeleteBy);
 
         // then
-        assertThat(actual).isTrue();
+        assertThat(actual).isPositive();
         assertThat(deletedPerson).isEmpty();
     }
 
     @Test
     void shouldUpdate() {
         // given
-        Person personToUpdate = PersonTestBuilder.aPerson()
-                .withUuid(UUID.fromString("95f3178e-f6a5-4ca6-b4f2-f0780a3f74b0"))
-                .withHouseOfResidence(House.builder()
-                        .uuid(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"))
-                        .build())
-                .build();
+        UUID newHouseOfResidenceUUID = UUID.fromString("e89895ef-ca4c-433b-87e8-3ead2646fed1");
+        House newHouseOfResidence = houseRepository.findByUuid(newHouseOfResidenceUUID).get();
 
-        LocalDateTime dateBeforeUpdate = LocalDateTime.now();
+        UUID personFromDbToUpdateUUID = UUID.fromString("95f3178e-f6a5-4ca6-b4f2-f0780a3f74b0");
+        Person personFromDbToUpdate = personRepository.findByUuid(personFromDbToUpdateUUID).get();
+
+        Person personWithUpdatedFields = PersonTestBuilder.aPerson().build();
+
+        personFromDbToUpdate.setName(personWithUpdatedFields.getName());
+        personFromDbToUpdate.setSurname(personWithUpdatedFields.getSurname());
+        personFromDbToUpdate.setSex(personWithUpdatedFields.getSex());
+        personFromDbToUpdate.setPassportNumber(personWithUpdatedFields.getPassportNumber());
+        personFromDbToUpdate.setPassportSeries(personWithUpdatedFields.getPassportSeries());
+        personFromDbToUpdate.setHouseOfResidence(newHouseOfResidence);
+
         // when
-        personRepository.update(personToUpdate, personToUpdate.getUuid());
+        Person saved = personRepository.save(personFromDbToUpdate);
 
         // then
-        Optional<Person> updatedPersonOptional = personRepository.findByUUID(personToUpdate.getUuid());
-        assertThat(updatedPersonOptional).isPresent();
+        assertThat(saved.getOwnedHouses()).isNotNull();
 
-        Person updatedPerson = updatedPersonOptional.get();
-        assertThat(updatedPerson.getOwnedHouses()).isNotNull();
-
-        LocalDateTime updatedDate = updatedPerson.getUpdateDate();
-        assertThat(dateBeforeUpdate).isBefore(updatedDate);
-
-        personToUpdate.setId(updatedPerson.getId());
-        personToUpdate.setCreateDate(updatedPerson.getCreateDate());
-        personToUpdate.setUpdateDate(updatedPerson.getUpdateDate());
-        personToUpdate.setPassportSeries(updatedPerson.getPassportSeries());
-        personToUpdate.setPassportNumber(updatedPerson.getPassportNumber());
-        assertThat(updatedPerson).isEqualTo(personToUpdate);
-    }
-
-    @Test
-    void shouldNotChange_UpdateDate_IfUpdateDoesNotChangeState() {
-        // given
-        UUID uuid = UUID.fromString("95f3178e-f6a5-4ca6-b4f2-f0780a3f74b0");
-        Person personToUpdate = PersonTestBuilder.aPerson()
-                .withUuid(uuid)
-                .withName("Pavel")
-                .withSurname("Ivanov")
-                .withSex(Sex.MALE)
-                .withPassportSeries("MP")
-                .withPassportNumber("1234567890123")
-                .withHouseOfResidence(House.builder()
-                        .uuid(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"))
-                        .build())
-                .build();
-
-        LocalDateTime updateDateBeforeUpdate = personRepository.findByUUID(uuid).get()
-                .getUpdateDate();
-        // when
-        personRepository.update(personToUpdate, personToUpdate.getUuid());
-
-        LocalDateTime updateDateAfterUpdate = personRepository.findByUUID(uuid).get()
-                .getUpdateDate();
-
-        // then
-        assertThat(updateDateBeforeUpdate).isEqualTo(updateDateAfterUpdate);
+        assertThat(saved).isEqualTo(personFromDbToUpdate);
     }
 
     @Test
     void shouldCreate() {
         // given
         UUID savedUUID = UUID.fromString("8d2ea5e7-7fbf-4427-8f79-2f534574b15c");
-        House houseOfResidence = House.builder()
-                .uuid(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"))
-                .build();
+        UUID houseOfResidenceUUID = UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e");
+
+        House houseOfResidence = houseRepository.findByUuid(houseOfResidenceUUID).get();
 
         Person personToCreate = PersonTestBuilder
                 .aPerson()
@@ -189,10 +168,10 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
             LocalDateTime dateBeforeCreate = LocalDateTime.now();
 
             // when
-            personRepository.create(personToCreate);
+            personRepository.save(personToCreate);
 
             // then
-            Optional<Person> createdPersonOptional = personRepository.findByUUID(savedUUID);
+            Optional<Person> createdPersonOptional = personRepository.findByUuid(savedUUID);
             assertThat(createdPersonOptional).isPresent();
 
             Person createdPerson = createdPersonOptional.get();

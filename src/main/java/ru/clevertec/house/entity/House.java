@@ -11,6 +11,7 @@ import ru.clevertec.house.entity.listener.HouseEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -21,7 +22,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class House {
+public class House implements IdentifiableByUUID {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -48,7 +49,7 @@ public class House {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToMany(mappedBy = Person.Fields.ownedHouses)
-    private List<Person> owners;
+    private Set<Person> owners;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -57,17 +58,6 @@ public class House {
 
     @Column(name = "create_date")
     private LocalDateTime createDate;
-
-    public House(Long id, UUID uuid, Double area, String country, String city, String street, Integer number, LocalDateTime createDate) {
-        this.id = id;
-        this.uuid = uuid;
-        this.area = area;
-        this.country = country;
-        this.city = city;
-        this.street = street;
-        this.number = number;
-        this.createDate = createDate;
-    }
 
     public static final class Fields {
         public static final String id = "id";

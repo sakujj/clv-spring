@@ -2,4 +2,8 @@ databaseChangeLog:
   - include:
       file: /db/changelog/changeset/changeset-0.0.1-create-tables.yml
   - include:
+      file: /db/changelog/changeset/changeset-0.0.1-create-house-history.yml
+  - include:
+      file: /db/changelog/changeset/changeset-0.0.1-create-house-history-trigger.yml
+  - include:
       file: /db/changelog/changeset/changeset-0.0.1-insert-data.yml

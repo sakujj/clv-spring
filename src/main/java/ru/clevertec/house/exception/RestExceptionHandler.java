@@ -1,6 +1,8 @@
 package ru.clevertec.house.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +18,42 @@ import ru.clevertec.house.constant.StatusCode;
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleServiceException(DataIntegrityViolationException ex) {
+
+        ApiError apiError = ApiError.builder()
+                .errorMessage(ex.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(StatusCode.BAD_REQUEST)
+                .body(apiError);
+    }
+
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<ApiError> handleServiceException(ServiceException serviceException) {
 
         ApiError apiError = ApiError.builder()
                 .errorMessage(serviceException.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(StatusCode.BAD_REQUEST)
+                .body(apiError);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiError> handleConstraintValidationException(ConstraintViolationException ex) {
+
+        ApiError apiError = ApiError.builder()
+                .errorMessage(ex.getMessage())
+                .validationErrors(ex.getConstraintViolations()
+                        .stream()
+                        .map(violation -> violation.getPropertyPath().toString().replaceAll(".*\\.", "")
+                                + " : "
+                                + violation.getMessage())
+                        .toList())
                 .build();
 
         return ResponseEntity
@@ -34,7 +67,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         ApiError apiError = ApiError.builder()
                 .errorMessage("The request contains invalid data")
                 .validationErrors(ex.getFieldErrors().stream()
-                        .map(fe ->  fe.getField() + " : " + fe.getDefaultMessage())
+                        .map(fe -> fe.getField() + " : " + fe.getDefaultMessage())
                         .toList())
                 .build();
 
@@ -69,7 +102,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ApiError apiError = ApiError.builder()
                 .errorMessage("""
-                        %s. Incorrect property "%s" value : %s""".formatted(ex.getMessage(),  ex.getPropertyName(), ex.getValue())
+                        %s. Incorrect property "%s" value : %s""".formatted(ex.getMessage(), ex.getPropertyName(), ex.getValue())
                 )
                 .build();
 

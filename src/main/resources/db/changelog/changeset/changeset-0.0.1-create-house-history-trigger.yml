@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: changeset-0.0.1-create_table_house_history_trigger
+      author: sakujj
+      changes:
+        - sqlFile:
+            splitStatements: false
+            path: "/db/sql/ddl-house-history-trigger.sql"

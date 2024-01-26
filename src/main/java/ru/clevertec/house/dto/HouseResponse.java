@@ -1,14 +1,17 @@
 package ru.clevertec.house.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
 import lombok.Data;
-import ru.clevertec.house.constant.ApplicationConstants;
+import ru.clevertec.house.constant.FormatConstants;
+import ru.clevertec.house.entity.IdentifiableByUUID;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-public class HouseResponse {
+@Builder
+public class HouseResponse implements IdentifiableByUUID {
     private UUID uuid;
     private Double area;
     private String country;
@@ -16,6 +19,6 @@ public class HouseResponse {
     private String street;
     private Integer number;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApplicationConstants.DATE_TIME_FORMAT)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = FormatConstants.DATE_TIME_FORMAT)
     private LocalDateTime createDate;
 }

@@ -22,15 +22,15 @@ CREATE TABLE IF NOT EXISTS Person(
     create_date TIMESTAMP NOT NULL,
     update_date TIMESTAMP NOT NULL,
 
-    house_of_residence_id BIGINT REFERENCES House(id) ON UPDATE CASCADE NOT NULL,
+    house_of_residence_id BIGINT REFERENCES House(id) ON DELETE RESTRICT NOT NULL,
 
     CONSTRAINT uq_combination_passport_series_and_passport_number
         UNIQUE(passport_series, passport_number)
 );
 
-CREATE TABLE IF NOT EXISTS Owner_OwnedHouse(
-    person_id BIGINT REFERENCES Person(id) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
-    house_id BIGINT REFERENCES House(id) ON DELETE CASCADE ON UPDATE CASCADE NOT NULL,
+CREATE TABLE IF NOT EXISTS owner_to_owned_house(
+    person_id BIGINT REFERENCES Person(id) ON DELETE CASCADE NOT NULL,
+    house_id BIGINT REFERENCES House(id) ON DELETE CASCADE NOT NULL,
 
     CONSTRAINT pk PRIMARY KEY (person_id, house_id)
 );

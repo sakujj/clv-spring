@@ -1,7 +1,8 @@
 plugins {
     id 'java'
     id "io.freefair.lombok" version "6.5.1"
-    id 'war'
+    id 'org.springframework.boot' version '3.2.2'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group = 'org.example'
@@ -10,49 +11,27 @@ repositories {
     mavenCentral()
 }
 
-war {
-    archiveBaseName = "clv-house"
+ext {
+    mapstructVersion = "1.5.5.Final"
 }
 
-
 dependencies {
-    annotationProcessor 'org.hibernate.validator:hibernate-validator-annotation-processor:8.0.1.Final'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.liquibase:liquibase-core'
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
 
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1'
+    runtimeOnly 'org.postgresql:postgresql'
 
-
-    implementation 'org.liquibase:liquibase-core:4.25.1'
-    implementation 'org.postgresql:postgresql:42.6.0'
-    implementation 'org.springframework:spring-context:6.1.2'
-    implementation 'org.springframework:spring-webmvc:6.1.2'
-    implementation 'org.springframework:spring-orm:6.1.2'
-    implementation 'org.springframework:spring-jdbc:6.1.2'
-    implementation 'org.hibernate.orm:hibernate-core:6.4.1.Final'
-    implementation 'org.hibernate.orm:hibernate-hikaricp:6.4.1.Final'
-    implementation 'org.yaml:snakeyaml:2.2'
-    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
-
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-
-    // validator bean is not loaded without this
-    testImplementation 'org.glassfish:jakarta.el:5.0.0-M1'
-
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-    testImplementation 'org.springframework:spring-test:6.1.2'
-    testImplementation "org.testcontainers:postgresql:1.19.3"
-    testImplementation "org.testcontainers:junit-jupiter:1.19.3"
-    testImplementation 'org.mockito:mockito-core:5.8.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation("org.junit.jupiter:junit-jupiter-params")
-    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 test {

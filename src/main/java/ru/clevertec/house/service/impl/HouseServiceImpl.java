@@ -2,35 +2,41 @@ package ru.clevertec.house.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.clevertec.house.cache.aop.CacheableCreate;
+import ru.clevertec.house.cache.aop.CacheableDeleteByUUID;
+import ru.clevertec.house.cache.aop.CacheableFindByUUID;
+import ru.clevertec.house.cache.aop.CacheableUpdateByUUID;
 import ru.clevertec.house.dto.HouseRequest;
 import ru.clevertec.house.dto.HouseResponse;
-import ru.clevertec.house.dto.PersonResponse;
+import ru.clevertec.house.entity.House;
+import ru.clevertec.house.entity.Person;
 import ru.clevertec.house.exception.ServiceException;
 import ru.clevertec.house.mapper.HouseMapper;
-import ru.clevertec.house.mapper.PersonMapper;
-import ru.clevertec.house.entity.House;
 import ru.clevertec.house.repository.HouseRepository;
+import ru.clevertec.house.repository.PersonRepository;
 import ru.clevertec.house.service.HouseService;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class HouseServiceImpl implements HouseService {
 
     private final HouseRepository houseRepository;
     private final HouseMapper houseMapper;
-    private final PersonMapper personMapper;
+    private final PersonRepository personRepository;
 
     @Override
+    @CacheableFindByUUID
     public Optional<HouseResponse> findByUUID(UUID uuid) {
         try {
-            return houseRepository.findByUUID(uuid)
+            return houseRepository.findByUuid(uuid)
                     .map(houseMapper::toResponse);
         } catch (RuntimeException ex) {
             throw new ServiceException(ex.getMessage(), ex);
@@ -38,56 +44,93 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
-    public List<HouseResponse> findAll(int page, int size) {
+    public Page<HouseResponse> findAll(Pageable pageable) {
         try {
-            return houseRepository.findAll(page, size)
-                    .stream()
-                    .map(houseMapper::toResponse)
-                    .toList();
+            return houseRepository.findAll(pageable)
+                    .map(houseMapper::toResponse);
         } catch (RuntimeException ex) {
             throw new ServiceException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public List<HouseResponse> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size) {
+    public Page<HouseResponse> findAllHousesByOwnerUUID(UUID ownerUUID, Pageable pageable) {
         try {
-            return houseRepository.findAllHousesByOwnerUUID(ownerUUID, page, size)
-                    .stream()
-                    .map(houseMapper::toResponse)
-                    .toList();
+            return houseRepository.findAllHousesByOwnerUuid(ownerUUID, pageable)
+                    .map(houseMapper::toResponse);
         } catch (RuntimeException ex) {
             throw new ServiceException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public void deleteByUUID(UUID uuid) throws DataIntegrityViolationException {
+    @Transactional
+    public void addNewOwnerToHouse(UUID houseUUID, UUID newOwnerUUID) {
         try {
-            houseRepository.deleteByUUID(uuid);
+            Person newOwner = personRepository.findByUuid(newOwnerUUID)
+                    .orElseThrow(() -> new ServiceException("the specified owner does not exist"));
+
+            House house = houseRepository.findByUuid(houseUUID)
+                    .orElseThrow(() -> new ServiceException("the specified house does not exist"));
+
+            // add to owner list because Person is the owning side
+            newOwner.getOwnedHouses().add(house);
         } catch (RuntimeException ex) {
             throw new ServiceException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public void update(HouseRequest houseToUpdateRequest, UUID houseUUID) {
+    @Transactional
+    @CacheableDeleteByUUID
+    public long deleteByUUID(UUID uuid) throws DataIntegrityViolationException {
         try {
-            House houseToUpdate = houseMapper.fromRequest(houseToUpdateRequest);
-            houseRepository.update(houseToUpdate, houseUUID);
+            return houseRepository.deleteByUuid(uuid);
         } catch (RuntimeException ex) {
             throw new ServiceException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public void create(HouseRequest houseRequest) {
+    @Transactional
+    @CacheableCreate
+    public HouseResponse create(HouseRequest houseRequest) {
         try {
             House houseToCreate = houseMapper.fromRequest(houseRequest);
-            houseRepository.create(houseToCreate);
+            return houseMapper.toResponse(houseRepository.save(houseToCreate));
         } catch (RuntimeException ex) {
             throw new ServiceException(ex.getMessage(), ex);
         }
     }
 
+    @Override
+    @Transactional
+    @CacheableUpdateByUUID
+    public Optional<HouseResponse> update(HouseRequest houseToUpdateRequest, UUID houseUUID) {
+        try {
+            Optional<House> optionalHouse = houseRepository.findByUuid(houseUUID);
+            if (optionalHouse.isEmpty()) {
+                return Optional.empty();
+            }
+
+            House existingHouse = optionalHouse.get();
+            House houseToUpdate = houseMapper.fromRequest(houseToUpdateRequest);
+
+            setFieldsToUpdateOnExistingHouse(existingHouse, houseToUpdate);
+
+            House updatedVersion = houseRepository.save(existingHouse);
+
+            return Optional.of(houseMapper.toResponse(updatedVersion));
+        } catch (RuntimeException ex) {
+            throw new ServiceException(ex.getMessage(), ex);
+        }
+    }
+
+    private static void setFieldsToUpdateOnExistingHouse(House existingHouse, House houseToUpdate) {
+        existingHouse.setCity(houseToUpdate.getCity());
+        existingHouse.setStreet(houseToUpdate.getStreet());
+        existingHouse.setCountry(houseToUpdate.getCountry());
+        existingHouse.setNumber(houseToUpdate.getNumber());
+        existingHouse.setArea(houseToUpdate.getArea());
+    }
 }

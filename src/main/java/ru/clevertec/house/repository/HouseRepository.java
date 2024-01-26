@@ -1,23 +1,43 @@
 package ru.clevertec.house.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import ru.clevertec.house.entity.House;
-import ru.clevertec.house.entity.Person;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface HouseRepository {
+@Repository
+public interface HouseRepository extends JpaRepository<House, Long> {
 
-    Optional<House> findByUUID(UUID uuid);
+    Optional<House> findByUuid(UUID uuid);
 
-    List<House> findAll(int page, int size);
+    Page<House> findAll(Pageable pageable);
 
-    List<House> findAllHousesByOwnerUUID(UUID ownerUUID, int page, int size);
+    @Query(value = """
+            SELECT
+                h.id,
+                h."uuid",
+                h.street,
+                h.city,
+                h.country,
+                h.number,
+                h.area,
+                h.create_date
+            FROM Person p
+            JOIN owner_to_owned_house oto
+                ON p.id = oto.person_id
+            JOIN House h
+                ON h.id = oto.house_id
+            WHERE p."uuid" = :ownerUuid
+            """, nativeQuery = true)
+    Page<House> findAllHousesByOwnerUuid(UUID ownerUuid, Pageable pageable);
 
-    boolean deleteByUUID(UUID uuid);
+    long deleteByUuid(UUID uuid);
 
-    void update(House houseToUpdate, UUID houseUUID);
-
-    void create(House house);
+    House save(House house);
 }

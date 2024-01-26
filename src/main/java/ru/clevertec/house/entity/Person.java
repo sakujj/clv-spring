@@ -2,13 +2,12 @@ package ru.clevertec.house.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ConverterRegistration;
 import ru.clevertec.house.entity.converter.SexConverter;
 import ru.clevertec.house.entity.listener.PersonEntityListener;
 import ru.clevertec.house.enumeration.Sex;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -17,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class Person {
+public class Person implements IdentifiableByUUID {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -50,19 +49,19 @@ public class Person {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "house_of_residence_id", nullable = false)
     private House houseOfResidence;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "Owner_OwnedHouse",
+            name = "owner_to_owned_house",
             joinColumns = {@JoinColumn(name = "person_id")},
             inverseJoinColumns = {@JoinColumn(name = "house_id")}
     )
-    private List<House> ownedHouses;
+    private Set<House> ownedHouses;
 
     public static final class Fields {
         public static final String id = "id";

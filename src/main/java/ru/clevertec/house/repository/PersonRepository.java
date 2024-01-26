@@ -1,23 +1,29 @@
 package ru.clevertec.house.repository;
 
-import ru.clevertec.house.entity.House;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import ru.clevertec.house.entity.Person;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface PersonRepository {
+@Repository
+public interface PersonRepository extends JpaRepository<Person, Long> {
 
-    Optional<Person> findByUUID(UUID uuid);
+    @EntityGraph(attributePaths = {"houseOfResidence"})
+    Optional<Person> findByUuid(UUID uuid);
 
-    List<Person> findAllResidentsByHouseUUID(UUID houseUUID, int page, int size);
+    @EntityGraph(attributePaths = {"houseOfResidence"})
+    Page<Person> findAllResidentsByHouseOfResidenceUuid(UUID houseOfResidenceUuid, Pageable pageable);
 
-    List<Person> findAll(int page, int size);
+    @EntityGraph(attributePaths = {"houseOfResidence"})
+    Page<Person> findAll(Pageable pageable);
 
-    boolean deleteByUUID(UUID uuid);
+    long deleteByUuid(UUID uuid);
 
-    void update(Person personToUpdate, UUID personUUID);
-
-    void create(Person person);
+    Person save(Person person);
 }
