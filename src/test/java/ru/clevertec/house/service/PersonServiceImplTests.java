@@ -1,9 +1,11 @@
-package ru.clevertec.house.service.impl;
+package ru.clevertec.house.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,16 +22,19 @@ import ru.clevertec.house.repository.PersonRepository;
 import ru.clevertec.house.test.util.HouseTestBuilder;
 import ru.clevertec.house.test.util.PersonTestBuilder;
 
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PersonServiceImplTests {
+class PersonServiceImplTests {
 
     @Mock
     private HouseRepository houseRepository;
@@ -44,7 +49,7 @@ public class PersonServiceImplTests {
     private PersonServiceImpl personServiceImpl;
 
     @Test
-    public void shouldFindPersonById() {
+    void shouldFindPersonById_whenRepositoryFoundById() {
         // given
         UUID uuidToFindBy = UUID.fromString("ede5bf7c-6029-48c2-b225-95afc0fe1b36");
         Person expectedFromRepo = PersonTestBuilder.aPerson().build();
@@ -64,7 +69,22 @@ public class PersonServiceImplTests {
     }
 
     @Test
-    public void shouldFindAll() {
+    void shouldNotFindPersonById_whenRepositoryDidNotFindById() {
+        // given
+        UUID uuidToFindBy = UUID.fromString("ede5bf7c-6029-48c2-b225-95afc0fe1b36");
+
+        when(personRepository.findByUuid(uuidToFindBy))
+                .thenReturn(Optional.empty());
+
+        // when
+        Optional<PersonResponse> actual = personServiceImpl.findByUUID(uuidToFindBy);
+
+        // then
+        assertThat(actual).isEmpty();
+    }
+
+    @Test
+    void shouldFindAll() {
         // given
         Pageable pageable = PageRequest.of(0, 10);
         List<Person> expectedContentFromRepo = List.of(
@@ -102,7 +122,7 @@ public class PersonServiceImplTests {
     }
 
     @Test
-    public void shouldCreate() {
+    void shouldCreate() {
         // given
         PersonRequest personRequestToCreate = PersonTestBuilder.aPerson().buildRequest();
         Person personFromRequest = PersonTestBuilder.aPerson().build();
@@ -128,60 +148,84 @@ public class PersonServiceImplTests {
         assertThat(actual).isEqualTo(expected);
     }
 
-//    @Test
-//    public void shouldUpdate() {
-//        // given
-//        House newHouseOfResidence = HouseTestBuilder.aHouse().build();
-//
-//        PersonTestBuilder personFromRequestBuilder = PersonTestBuilder.aPerson()
-//                .withName("UPDATED NAME")
-//                .withSurname("UPDATED SURNAME")
-//                .withSex(Sex.FEMALE)
-//                .withHouseOfResidence(newHouseOfResidence)
-//                .withPassportNumber("NEW PASSPORT NUMBER")
-//                .withPassportSeries("NEW PASSPORT SERIES");
-//
-//        PersonRequest personToUpdateRequest = personFromRequestBuilder.buildRequest();
-//        UUID uuidOfPersonToBeUpdated = personFromRequestBuilder.getUuid();
-//        Person personFromRequest = personFromRequestBuilder.build();
-//
-//        PersonTestBuilder existingPersonBuilder = PersonTestBuilder.aPerson();
-//        Person existingPerson = existingPersonBuilder.build();
-//        Person existingPersonWithUpdatedFields = existingPersonBuilder
-//                .withName(personFromRequest.getName())
-//                .withSurname(personFromRequest.getSurname())
-//                .withSex(personFromRequest.getSex())
-//                .withPassportSeries(personFromRequest.getPassportSeries())
-//                .withPassportNumber(personFromRequest.getPassportNumber())
-//                .build();
-//
-//        PersonTestBuilder expectedPersonBuilder = PersonTestBuilder.aPerson()
-//                .withName(personFromRequest.getName())
-//                .withSurname(personFromRequest.getSurname())
-//                .withSex(personFromRequest.getSex())
-//                .withPassportSeries(personFromRequest.getPassportSeries())
-//                .withPassportNumber(personFromRequest.getPassportNumber());
-//        Person expectedFromSave = expectedPersonBuilder.build();
-//        PersonResponse expected = expectedPersonBuilder.buildResponse();
-//
-//        when(personRepository.findByUuid(uuidOfPersonToBeUpdated))
-//                .thenReturn(Optional.of(existingPerson));
-//        when(houseRepository.findByUuid(personToUpdateRequest.getHouseOfResidenceUUID()))
-//                .thenReturn(Optional.of(newHouseOfResidence));
-//        when(personMapper.fromRequest(personToUpdateRequest))
-//                .thenReturn(personFromRequest);
-//        when(personRepository.save(expectedFromSave))
-//                .thenReturn(expectedFromSave);
-//        when(personMapper.toResponse(expectedFromSave))
-//                .thenReturn(expected);
-//
-//        // when
-//        Optional<PersonResponse> actual = personServiceImpl.update(personToUpdateRequest, uuidOfPersonToBeUpdated);
-//
-//        // then
-//        assertThat(actual).isPresent();
-//        assertThat(actual.get()).isEqualTo(expected);
-//    }
+    @Test
+    void shouldUpdate() {
+        // given
+        House newHouseOfResidence = HouseTestBuilder.aHouse().build();
+
+        PersonTestBuilder personFromRequestBuilder = PersonTestBuilder.aPerson()
+                .withName("UPDATED NAME")
+                .withSurname("UPDATED SURNAME")
+                .withSex(Sex.FEMALE)
+                .withHouseOfResidence(newHouseOfResidence)
+                .withPassportNumber("NEW PASSPORT NUMBER")
+                .withPassportSeries("NEW PASSPORT SERIES");
+
+        PersonRequest personToUpdateRequest = personFromRequestBuilder.buildRequest();
+        Person personFromRequest = personFromRequestBuilder.build();
+
+        PersonTestBuilder existingPersonBuilder = PersonTestBuilder.aPerson();
+        Person existingPerson = existingPersonBuilder.build();
+
+        LocalDateTime updatedLocalDateTime = LocalDateTime.of(2024, Month.JUNE, 12, 12, 12, 21,123456789);
+        try (MockedStatic<LocalDateTime> localDateTimeMockedStatic = Mockito.mockStatic(LocalDateTime.class)) {
+            localDateTimeMockedStatic.when(LocalDateTime::now)
+                    .thenReturn(updatedLocalDateTime);
+
+            Person existingPersonWithUpdatedFields = existingPersonBuilder
+                    .withName(personFromRequest.getName())
+                    .withSurname(personFromRequest.getSurname())
+                    .withSex(personFromRequest.getSex())
+                    .withPassportSeries(personFromRequest.getPassportSeries())
+                    .withPassportNumber(personFromRequest.getPassportNumber())
+                    .withUpdateDate(updatedLocalDateTime)
+                    .build();
+
+            PersonTestBuilder expectedPersonBuilder = PersonTestBuilder.aPerson()
+                    .withName(personFromRequest.getName())
+                    .withSurname(personFromRequest.getSurname())
+                    .withSex(personFromRequest.getSex())
+                    .withPassportSeries(personFromRequest.getPassportSeries())
+                    .withPassportNumber(personFromRequest.getPassportNumber());
+            Person expectedFromSave = expectedPersonBuilder.build();
+            PersonResponse expected = expectedPersonBuilder.buildResponse();
+
+            when(personRepository.findByUuid(personFromRequest.getUuid()))
+                    .thenReturn(Optional.of(existingPerson));
+            when(personMapper.fromRequest(personToUpdateRequest))
+                    .thenReturn(personFromRequest);
+            when(houseRepository.findByUuid(personToUpdateRequest.getHouseOfResidenceUUID()))
+                    .thenReturn(Optional.of(newHouseOfResidence));
+            when(personRepository.save(existingPersonWithUpdatedFields))
+                    .thenReturn(expectedFromSave);
+            when(personMapper.toResponse(expectedFromSave))
+                    .thenReturn(expected);
+
+            // when
+            Optional<PersonResponse> actual = personServiceImpl.update(personToUpdateRequest, personFromRequest.getUuid());
+
+            // then
+            assertThat(actual).isPresent();
+            assertThat(actual.get()).isEqualTo(expected);
+        }
+    }
+
+    @Test
+    void shouldNotUpdate_whenNotFoundInRepository() {
+        // given
+        PersonRequest personRequest = PersonTestBuilder.aPerson().buildRequest();
+        UUID uuid = PersonTestBuilder.aPerson().getUuid();
+
+
+        when(personRepository.findByUuid(any(UUID.class)))
+                .thenReturn(Optional.empty());
+
+        // when
+        Optional<PersonResponse> actual = personServiceImpl.update(personRequest, uuid);
+
+        // then
+        assertThat(actual).isEmpty();
+    }
 
     @Test
     void shouldDelete() {

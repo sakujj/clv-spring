@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.NaturalId;
 import ru.clevertec.house.entity.listener.HouseEntityListener;
 
 import java.time.LocalDateTime;
@@ -25,25 +26,26 @@ import java.util.UUID;
 public class House implements IdentifiableByUUID {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "uuid")
+    @NaturalId
+    @Column(name = "uuid", nullable = false)
     private UUID uuid;
 
-    @Column(name = "area")
+    @Column(name = "area", nullable = false)
     private Double area;
 
-    @Column(name = "country")
+    @Column(name = "country", nullable = false)
     private String country;
 
-    @Column(name = "city")
+    @Column(name = "city", nullable = false)
     private String city;
 
-    @Column(name = "street")
+    @Column(name = "street", nullable = false)
     private String street;
 
-    @Column(name = "number")
+    @Column(name = "number", nullable = false)
     private Integer number;
 
     @EqualsAndHashCode.Exclude
@@ -56,7 +58,7 @@ public class House implements IdentifiableByUUID {
     @OneToMany(mappedBy = Person.Fields.houseOfResidence)
     private List<Person> residents;
 
-    @Column(name = "create_date")
+    @Column(name = "create_date", nullable = false, updatable = false)
     private LocalDateTime createDate;
 
     public static final class Fields {

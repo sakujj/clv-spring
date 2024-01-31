@@ -9,7 +9,7 @@ import ru.clevertec.house.test.util.PersonTestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PersonMapperTests {
+class PersonMapperTests {
 
     private final PersonMapper personMapper = Mappers.getMapper(PersonMapper.class);
 

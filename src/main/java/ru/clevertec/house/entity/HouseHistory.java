@@ -10,7 +10,7 @@ import ru.clevertec.house.enumeration.PersonType;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "HouseHistory")
+@Table(name = "house_history")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,17 +23,17 @@ public class HouseHistory {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "house_id")
+    @JoinColumn(name = "house_id", nullable = false, updatable = false)
     private House house;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id")
+    @JoinColumn(name = "person_id", nullable = false, updatable = false)
     private Person person;
 
-    @Column(name = "date")
+    @Column(name = "date", nullable = false, updatable = false)
     private LocalDateTime date;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type")
+    @Column(name = "type", nullable = false, updatable = false)
     private PersonType type;
 }

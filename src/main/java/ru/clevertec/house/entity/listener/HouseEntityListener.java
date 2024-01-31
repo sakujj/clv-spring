@@ -9,11 +9,7 @@ import java.util.UUID;
 public class HouseEntityListener {
 
     @PrePersist
-    private void beforeCreate(House house) {
-        if (house.getId() != null) {
-            return;
-        }
-
+    private void beforePersist(House house) {
         LocalDateTime createDate = LocalDateTime.now();
         house.setCreateDate(createDate);
 

@@ -1,4 +1,4 @@
-package ru.clevertec.house.service.impl;
+package ru.clevertec.house.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -9,11 +9,9 @@ import ru.clevertec.house.dto.HouseResponse;
 import ru.clevertec.house.dto.PersonResponse;
 import ru.clevertec.house.entity.HouseHistory;
 import ru.clevertec.house.enumeration.PersonType;
-import ru.clevertec.house.exception.ServiceException;
 import ru.clevertec.house.mapper.HouseMapper;
 import ru.clevertec.house.mapper.PersonMapper;
 import ru.clevertec.house.repository.HouseHistoryRepository;
-import ru.clevertec.house.service.HouseHistoryService;
 
 import java.util.UUID;
 
@@ -47,28 +45,22 @@ public class HouseHistoryServiceImpl implements HouseHistoryService {
     }
     
     private Page<PersonResponse> findAllPeopleByHouseUuidAndType(UUID houseUuid, PersonType type, Pageable pageable) {
-        try {
+
             Page<HouseHistory> historyPage = houseHistoryRepository.findAllByHouseUuidAndType(
                     houseUuid,
                     type,
                     pageable);
 
             return historyPage.map(history -> personMapper.toResponse(history.getPerson()));
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
     }
 
     private Page<HouseResponse> findAllHousesByPersonUuidAndType(UUID personUuid, PersonType type, Pageable pageable) {
-        try {
+
             Page<HouseHistory> historyPage = houseHistoryRepository.findAllByPersonUuidAndType(
                     personUuid,
                     type,
                     pageable);
 
             return historyPage.map(history -> houseMapper.toResponse(history.getHouse()));
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
     }
 }
