@@ -1,10 +1,12 @@
 package ru.clevertec.house.entity.converter;
 
 import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import ru.clevertec.house.enumeration.Sex;
 
 import java.util.Arrays;
 
+@Converter
 public class SexConverter implements AttributeConverter<Sex, String> {
     @Override
     public String convertToDatabaseColumn(Sex attribute) {

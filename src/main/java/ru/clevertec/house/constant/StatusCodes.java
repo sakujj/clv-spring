@@ -3,7 +3,7 @@ package ru.clevertec.house.constant;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public class StatusCode {
+public class StatusCodes {
     public static final int OK = 200;
     public static final int CREATED = 201;
     public static final int NO_CONTENT = 204;

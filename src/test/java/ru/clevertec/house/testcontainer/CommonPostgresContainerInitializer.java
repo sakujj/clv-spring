@@ -1,16 +1,12 @@
-package ru.clevertec.house.repository;
+package ru.clevertec.house.testcontainer;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @ActiveProfiles("test")
-public abstract class AbstractDatabaseIntegrationTests {
+public abstract class CommonPostgresContainerInitializer {
 
     private static final PostgreSQLContainer<?> postgres;
 

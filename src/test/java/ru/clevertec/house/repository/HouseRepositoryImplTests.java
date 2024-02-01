@@ -1,5 +1,6 @@
 package ru.clevertec.house.repository;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -7,15 +8,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.house.entity.House;
+import ru.clevertec.house.testcontainer.CommonPostgresContainerInitializer;
 import ru.clevertec.house.test.util.HouseTestBuilder;
 
 import java.time.LocalDateTime;
@@ -27,12 +27,15 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-@Transactional
-@ActiveProfiles({"test", "test-no-cache"})
-@SpringBootTest
-public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
+@ActiveProfiles({"test"})
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class HouseRepositoryImplTests extends CommonPostgresContainerInitializer {
     @Autowired
     private HouseRepository houseRepository;
+
+    @Autowired
+    private TestEntityManager testEntityManager;
 
     @ParameterizedTest
     @MethodSource
@@ -54,29 +57,30 @@ public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
         );
     }
 
-//    @Test
-//    void shouldFindHouseByUUID() {
-//        // given
-//        UUID uuidToSearchBy = UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e");
-//        House expected = HouseTestBuilder.aHouse()
-//                .withId(1L)
-//                .withUuid(uuidToSearchBy)
-//                .withArea(64d)
-//                .withCountry("Belarus")
-//                .withCity("Grodno")
-//                .withStreet("Lenina st.")
-//                .withNumber(101)
-//                .withCreateDate(LocalDateTime.parse("2022-10-29T06:12:12.123"))
-//                .build();
-//
-//        // when
-//        Optional<House> actual = houseRepository.findByUuid(uuidToSearchBy);
-//
-//        // then
-//        assertThat(actual).isPresent();
-//        assertThat(actual.get()).isEqualTo(expected);
-//
-//    }
+    @Test
+    void shouldFindHouseByUUID() {
+        // given
+        UUID uuidToSearchBy = UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e");
+        House expected = HouseTestBuilder.aHouse()
+                .withId(1L)
+                .withUuid(uuidToSearchBy)
+                .withArea(64d)
+                .withCountry("Belarus")
+                .withCity("Grodno")
+                .withStreet("Lenina st.")
+                .withNumber(101)
+                .withCreateDate(LocalDateTime.parse("2022-10-29T06:12:12.123"))
+                .build();
+        EntityManager entityManager;
+
+        // when
+        Optional<House> actual = houseRepository.findByUuid(uuidToSearchBy);
+
+        // then
+        assertThat(actual).isPresent();
+        assertThat(actual.get()).isEqualTo(expected);
+
+    }
 
 
     @ParameterizedTest
@@ -107,6 +111,9 @@ public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
 
         // when
         long actualRowsUpdated = houseRepository.deleteByUuid(uuidToDeleteBy);
+
+        testEntityManager.flush();
+
         Optional<House> deletedHouse = houseRepository.findByUuid(uuidToDeleteBy);
 
         // then
@@ -129,13 +136,15 @@ public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
                 .build();
 
         // when
-        House savedHouse = houseRepository.save(houseToUpdate);
+        House savedHouseFromRepo = houseRepository.save(houseToUpdate);
+        testEntityManager.flush();
+
+        House updatedHouseFromDb = houseRepository.findByUuid(houseToUpdate.getUuid()).get();
 
         // then
-        Optional<House> updatedHouseOptional = houseRepository.findByUuid(houseToUpdate.getUuid());
-        assertThat(updatedHouseOptional).isPresent();
 
-        assertThat(savedHouse).isEqualTo(houseToUpdate);
+        assertThat(savedHouseFromRepo).isEqualTo(updatedHouseFromDb);
+        assertThat(savedHouseFromRepo).isEqualTo(houseToUpdate);
     }
 
     @Test
@@ -146,9 +155,6 @@ public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
                 .aHouse()
                 .withId(null)
                 .withUuid(null)
-                .withOwners(null)
-                .withResidents(null)
-                .withCreateDate(null)
                 .build();
         try (MockedStatic<UUID> mockedStatic = Mockito.mockStatic(UUID.class)) {
             mockedStatic.when(UUID::randomUUID)
@@ -157,17 +163,17 @@ public class HouseRepositoryImplTests extends AbstractDatabaseIntegrationTests {
             LocalDateTime dateBeforeCreate = LocalDateTime.now();
 
             // when
-            House savedHouse = houseRepository.save(houseToCreate);
+            House savedHouseFromRepo = houseRepository.save(houseToCreate);
+
+            testEntityManager.flush();
+
+            House savedHouseFromDb = houseRepository.findByUuid(savedUUID).get();
 
             // then
-            Optional<House> foundSavedHouseOptional = houseRepository.findByUuid(savedUUID);
-            assertThat(foundSavedHouseOptional).isPresent();
+            assertThat(savedHouseFromRepo).isEqualTo(houseToCreate);
+            assertThat(savedHouseFromRepo).isEqualTo(savedHouseFromDb);
 
-            House foundSavedHouse = foundSavedHouseOptional.get();
-
-            assertThat(savedHouse).isEqualTo(foundSavedHouse);
-
-            assertThat(dateBeforeCreate).isBefore(foundSavedHouse.getCreateDate());
+            assertThat(dateBeforeCreate).isBefore(savedHouseFromDb.getCreateDate());
         }
     }
 }

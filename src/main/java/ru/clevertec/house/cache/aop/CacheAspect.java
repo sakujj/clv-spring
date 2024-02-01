@@ -4,15 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.clevertec.house.cache.Cache;
 import ru.clevertec.house.entity.IdentifiableByUUID;
 
+import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
 @Aspect
-@Component
 @RequiredArgsConstructor
 public class CacheAspect {
 
@@ -43,6 +45,7 @@ public class CacheAspect {
             if (optional.isPresent()) {
                 cache.removeById(uuid);
             }
+
             return joinPoint.proceed();
         }
     }
@@ -68,13 +71,10 @@ public class CacheAspect {
     }
 
     private static UUID getFirstUUIDFromArgs(Object[] args) {
-        UUID uuid = null;
-        for (var arg : args) {
-            if (arg instanceof UUID id) {
-                uuid = id;
-                break;
-            }
-        }
-        return uuid;
+
+        return (UUID) Arrays.stream(args)
+                .filter(arg -> arg instanceof UUID)
+                .findAny()
+                .orElseThrow(() -> new NoSuchElementException("no UUID was found among args: " + Arrays.toString(args)));
     }
 }

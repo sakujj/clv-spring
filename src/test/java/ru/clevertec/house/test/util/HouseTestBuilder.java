@@ -48,6 +48,7 @@ public class HouseTestBuilder implements TestBuilder<House> {
                 .street(street)
                 .country(country)
                 .number(number)
+                .createDate(createDate)
                 .build();
     }
 

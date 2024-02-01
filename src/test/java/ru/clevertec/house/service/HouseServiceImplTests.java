@@ -1,4 +1,4 @@
-package ru.clevertec.house.service.impl;
+package ru.clevertec.house.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,10 +22,11 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class HouseServiceImplTests {
+class HouseServiceImplTests {
 
     @Mock
     private HouseRepository houseRepository;
@@ -37,7 +38,7 @@ public class HouseServiceImplTests {
     private HouseServiceImpl houseServiceImpl;
 
     @Test
-    public void shouldFindHouseById() {
+    public void shouldFindHouseById_whenRepositoryFoundById() {
         // given
         UUID uuidToFindBy = HouseTestBuilder.aHouse().getUuid();
         House expectedFromRepo = HouseTestBuilder.aHouse().build();
@@ -54,6 +55,21 @@ public class HouseServiceImplTests {
         // then
         assertThat(actual).isPresent();
         assertThat(actual.get()).isEqualTo(expected);
+    }
+
+    @Test
+    public void shouldNotFindHouseById_whenRepositoryDidNotFindById() {
+        // given
+        UUID uuidToFindBy = HouseTestBuilder.aHouse().getUuid();
+
+        when(houseRepository.findByUuid(uuidToFindBy))
+                .thenReturn(Optional.empty());
+
+        // when
+        Optional<HouseResponse> actual = houseServiceImpl.findByUUID(uuidToFindBy);
+
+        // then
+        assertThat(actual).isEmpty();
     }
 
     @Test
@@ -87,7 +103,6 @@ public class HouseServiceImplTests {
 
         // when
         Page<HouseResponse> actual = houseServiceImpl.findAll(pageable);
-        System.out.println(actual.getContent());
 
         // then
         assertThat(actual.getNumberOfElements()).isPositive();
@@ -118,8 +133,6 @@ public class HouseServiceImplTests {
     @Test
     public void shouldUpdate() {
         // given
-        House newHouseOfResidence = HouseTestBuilder.aHouse().build();
-
         HouseTestBuilder houseFromRequestBuilder = HouseTestBuilder.aHouse()
                 .withCity("NEW CITY")
                 .withCountry("NEW COUNTRY")
@@ -160,11 +173,29 @@ public class HouseServiceImplTests {
                 .thenReturn(expected);
 
         // when
+
         Optional<HouseResponse> actual = houseServiceImpl.update(houseToUpdateRequest, uuidOfHouseToBeUpdated);
 
         // then
         assertThat(actual).isPresent();
         assertThat(actual.get()).isEqualTo(expected);
+    }
+
+    @Test
+    void shouldNotUpdate_whenNotFoundInRepository() {
+        // given
+        HouseRequest houseRequest = HouseTestBuilder.aHouse().buildRequest();
+        UUID uuid = HouseTestBuilder.aHouse().getUuid();
+
+
+        when(houseRepository.findByUuid(any(UUID.class)))
+                .thenReturn(Optional.empty());
+
+        // when
+        Optional<HouseResponse> actual = houseServiceImpl.update(houseRequest, uuid);
+
+        // then
+        assertThat(actual).isEmpty();
     }
 
     @Test

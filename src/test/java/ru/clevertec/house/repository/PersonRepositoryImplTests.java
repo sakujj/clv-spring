@@ -1,5 +1,6 @@
 package ru.clevertec.house.repository;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -7,17 +8,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.house.entity.House;
 import ru.clevertec.house.entity.Person;
 import ru.clevertec.house.enumeration.Sex;
+import ru.clevertec.house.testcontainer.CommonPostgresContainerInitializer;
 import ru.clevertec.house.test.util.PersonTestBuilder;
 
 import java.time.LocalDateTime;
@@ -26,18 +26,22 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
-@Transactional
-@ActiveProfiles({"test", "test-no-cache"})
-@SpringBootTest
-public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests {
+@ActiveProfiles({"test"})
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class PersonRepositoryImplTests extends CommonPostgresContainerInitializer {
 
     @Autowired
     private PersonRepository personRepository;
 
     @Autowired
     private HouseRepository houseRepository;
+
+    @Autowired
+    private TestEntityManager testEntityManager;
 
     @MethodSource
     @ParameterizedTest
@@ -58,7 +62,7 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
     }
 
     @Test
-    void shouldFindHouseByUUID() {
+    void shouldFindPersonByUUID() {
         // given
         UUID uuidToSearchBy = UUID.fromString("95f3178e-f6a5-4ca6-b4f2-f0780a3f74b0");
         Person expected = PersonTestBuilder.aPerson()
@@ -78,6 +82,8 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
 
         // then
         assertThat(actual).isPresent();
+        assertThat(actual.get().getHouseOfResidence().getUuid())
+                .isEqualTo(UUID.fromString("acb8316d-3d13-4096-b1d6-f997b7307f0e"));
         assertThat(actual.get()).isEqualTo(expected);
 
     }
@@ -111,6 +117,9 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
 
         // when
         long actual = personRepository.deleteByUuid(uuidToDeleteBy);
+
+        testEntityManager.flush();
+
         Optional<Person> deletedPerson = personRepository.findByUuid(uuidToDeleteBy);
 
         // then
@@ -137,13 +146,18 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
         personFromDbToUpdate.setHouseOfResidence(newHouseOfResidence);
 
         // when
-        Person saved = personRepository.save(personFromDbToUpdate);
+        Person savedFromRepo = personRepository.save(personFromDbToUpdate);
+        testEntityManager.flush();
+
+        Person savedFromDb = personRepository.findByUuid(savedFromRepo.getUuid()).get();
 
         // then
-        assertThat(saved.getOwnedHouses()).isNotNull();
+        assertThat(savedFromRepo.getOwnedHouses()).isNotNull();
 
-        assertThat(saved).isEqualTo(personFromDbToUpdate);
+        assertThat(savedFromRepo).isEqualTo(personFromDbToUpdate);
+        assertThat(savedFromRepo).isEqualTo(savedFromDb);
     }
+
 
     @Test
     void shouldCreate() {
@@ -168,19 +182,44 @@ public class PersonRepositoryImplTests extends AbstractDatabaseIntegrationTests 
             LocalDateTime dateBeforeCreate = LocalDateTime.now();
 
             // when
-            personRepository.save(personToCreate);
+            Person createdPersonFromRepo = personRepository.save(personToCreate);
+
+            testEntityManager.flush();
+
+            Person createdPersonFromDb = personRepository.findByUuid(savedUUID).get();
 
             // then
-            Optional<Person> createdPersonOptional = personRepository.findByUuid(savedUUID);
-            assertThat(createdPersonOptional).isPresent();
+            assertThat(createdPersonFromDb).isEqualTo(personToCreate);
+            assertThat(createdPersonFromDb).isEqualTo(createdPersonFromRepo);
 
-            Person createdPerson = createdPersonOptional.get();
-            personToCreate.setId(createdPerson.getId());
-            personToCreate.setCreateDate(createdPerson.getCreateDate());
-            assertThat(createdPerson).isEqualTo(personToCreate);
-
-            assertThat(dateBeforeCreate).isBefore(createdPerson.getCreateDate());
-            assertThat(dateBeforeCreate).isBefore(createdPerson.getUpdateDate());
+            assertThat(dateBeforeCreate).isBefore(createdPersonFromDb.getCreateDate());
+            assertThat(dateBeforeCreate).isBefore(createdPersonFromDb.getUpdateDate());
         }
+    }
+
+    @Test
+    void shouldMonitorUniquePassportSeriesAndPassportNumberCombination() {
+        // given
+        House anyHouse = houseRepository.findAll(PageRequest.of(0, 1))
+                .getContent().get(0);
+
+        Person personFirst = PersonTestBuilder.aPerson()
+                .withId(null)
+                .withUuid(null)
+                .withHouseOfResidence(anyHouse)
+                .build();
+        Person personWithTheSamePassportNumberAndPassportSeriesLikePersonFirst = PersonTestBuilder.aPerson()
+                .withId(null)
+                .withUuid(null)
+                .withPassportNumber(personFirst.getPassportNumber())
+                .withPassportSeries(personFirst.getPassportSeries())
+                .withHouseOfResidence(anyHouse)
+                .build();
+
+        // when, then
+        testEntityManager.persist(personFirst);
+
+        assertThatThrownBy(() -> testEntityManager.persist(personWithTheSamePassportNumberAndPassportSeriesLikePersonFirst))
+                .isInstanceOf(ConstraintViolationException.class);
     }
 }

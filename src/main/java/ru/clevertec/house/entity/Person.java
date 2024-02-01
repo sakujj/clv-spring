@@ -2,6 +2,7 @@ package ru.clevertec.house.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.NaturalId;
 import ru.clevertec.house.entity.converter.SexConverter;
 import ru.clevertec.house.entity.listener.PersonEntityListener;
 import ru.clevertec.house.enumeration.Sex;
@@ -19,32 +20,33 @@ import java.util.UUID;
 public class Person implements IdentifiableByUUID {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "uuid")
+    @NaturalId
+    @Column(name = "uuid", nullable = false)
     private UUID uuid;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "surname")
+    @Column(name = "surname", nullable = false)
     private String surname;
 
-    @Column(name = "sex")
+    @Column(name = "sex", nullable = false)
     @Convert(converter = SexConverter.class)
     private Sex sex;
 
-    @Column(name = "passport_series")
+    @Column(name = "passport_series", nullable = false)
     private String passportSeries;
 
-    @Column(name = "passport_number")
+    @Column(name = "passport_number", nullable = false)
     private String passportNumber;
 
-    @Column(name = "create_date")
+    @Column(name = "create_date", nullable = false, updatable = false)
     private LocalDateTime createDate;
 
-    @Column(name = "update_date")
+    @Column(name = "update_date", nullable = false)
     private LocalDateTime updateDate;
 
     @EqualsAndHashCode.Exclude
