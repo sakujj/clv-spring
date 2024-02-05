@@ -1,84 +1,24 @@
 package ru.clevertec.house.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.clevertec.house.dto.PersonRequest;
 import ru.clevertec.house.dto.PersonResponse;
-import ru.clevertec.house.exception.ServiceException;
-import ru.clevertec.house.mapper.PersonMapper;
-import ru.clevertec.house.model.Person;
-import ru.clevertec.house.repository.PersonRepository;
 
-
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-@Transactional
-public class PersonService {
+public interface PersonService {
 
-    private final PersonRepository personRepository;
-    private final PersonMapper personMapper;
+    Optional<PersonResponse> findByUUID(UUID uuid);
 
-    public Optional<PersonResponse> findByUUID(UUID uuid) {
-        try {
-            return personRepository.findByUUID(uuid)
-                    .map(personMapper::toResponse);
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
-    }
+    Page<PersonResponse> findAll(Pageable pageable);
 
-    public List<PersonResponse> findAll(int page, int size) {
-        try {
-            return personRepository.findAll(page, size)
-                    .stream()
-                    .map(personMapper::toResponse)
-                    .toList();
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
-    }
+    Page<PersonResponse> findAllResidentsByHouseOfResidenceUUID(UUID houseOfResidenceUUID, Pageable pageable);
 
-    public List<PersonResponse> findAllByHouseOfResidenceUUID(UUID houseOfResidenceUUID, int page, int size) {
-        try {
-            return personRepository.findAllByHouseOfResidenceUUID(houseOfResidenceUUID, page, size)
-                    .stream()
-                    .map(personMapper::toResponse)
-                    .toList();
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
-    }
+    long deleteByUUID(UUID uuid);
 
-    public void deleteByUUID(UUID uuid) throws DataIntegrityViolationException {
-        try {
-            personRepository.deleteByUUID(uuid);
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
-    }
+    Optional<PersonResponse> update(PersonRequest personToUpdateRequest, UUID personUUID);
 
-    public void update(PersonRequest personToUpdateRequest, UUID personUUID) {
-        try {
-            Person personToUpdate = personMapper.fromRequest(personToUpdateRequest);
-            personRepository.update(personToUpdate, personUUID);
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
-    }
-
-    public void create(PersonRequest personRequest) {
-        try {
-            Person personToCreate = personMapper.fromRequest(personRequest);
-            personRepository.create(personToCreate);
-        } catch (RuntimeException ex) {
-            throw new ServiceException(ex.getMessage(), ex);
-        }
-    }
-
+    PersonResponse create(PersonRequest personRequest);
 }

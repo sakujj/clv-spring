@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: changeset-0.0.1-insert-data
+      author: sakujj
+      changes:
+        - sqlFile:
+            path: "/db/sql/dml.sql"

@@ -1,0 +1,8 @@
+{
+  "name": "my_name_1",
+  "surname": "surname_1",
+  "sex": "MALE",
+  "passportNumber": "1234567893332",
+  "passportSeries":"LL",
+  "houseOfResidenceUUID": "acb8316d-3d13-4096-b1d6-f997b7307f0e"
+}

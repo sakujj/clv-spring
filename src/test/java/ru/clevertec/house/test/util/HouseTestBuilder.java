@@ -1,18 +1,17 @@
 package ru.clevertec.house.test.util;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import ru.clevertec.house.model.House;
-import ru.clevertec.house.model.Person;
+import ru.clevertec.house.dto.HouseRequest;
+import ru.clevertec.house.dto.HouseResponse;
+import ru.clevertec.house.entity.House;
+import ru.clevertec.house.entity.Person;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @With
@@ -24,13 +23,13 @@ public class HouseTestBuilder implements TestBuilder<House> {
     private Long id = 666L;
 
     private UUID uuid = UUID.fromString("c28c0367-f754-4be6-b53b-4586ea361503");
-    private Integer area = 1111;
+    private Double area = 1111.11;
     private String country = "Belarus";
     private String city = "Minsk";
     private String street = "Sovetskaya";
     private Integer number = 44;
 
-    private List<Person> owners = null;
+    private Set<Person> owners = null;
 
     private List<Person> residents = null;
 
@@ -39,5 +38,27 @@ public class HouseTestBuilder implements TestBuilder<House> {
     @Override
     public House build() {
         return new House(id, uuid, area, country, city, street, number, owners, residents, createDate);
+    }
+
+    public HouseResponse buildResponse() {
+        return HouseResponse.builder()
+                .uuid(uuid)
+                .area(area)
+                .city(city)
+                .street(street)
+                .country(country)
+                .number(number)
+                .createDate(createDate)
+                .build();
+    }
+
+    public HouseRequest buildRequest() {
+        return HouseRequest.builder()
+                .area(area)
+                .city(city)
+                .street(street)
+                .country(country)
+                .number(number)
+                .build();
     }
 }
