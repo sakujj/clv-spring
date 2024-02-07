@@ -1,0 +1,30 @@
+plugins {
+    id 'maven-publish'
+    id 'build-conventions'
+}
+
+publishing {
+    publications {
+        customCache(MavenPublication) {
+            groupId "${group}"
+            artifactId project.name
+            version "${version}"
+
+            from components.java
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter'
+}
