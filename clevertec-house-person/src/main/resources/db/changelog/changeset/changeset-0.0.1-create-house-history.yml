@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: changeset-0.0.1-create_table_house_history
+      author: sakujj
+      changes:
+        - sqlFile:
+            path: "/db/sql/ddl-house-history.sql"
