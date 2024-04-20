@@ -1,2 +1,3 @@
-rootProject.name = 'clevertec-house-person'
-
+rootProject.name = 'multi-project'
+include 'clevertec-house-person'
+include 'aop-cache-spring-boot-starter'

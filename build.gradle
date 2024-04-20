@@ -1,42 +1,24 @@
 plugins {
-    id 'java'
-    id "io.freefair.lombok" version "6.5.1"
-    id 'org.springframework.boot' version '3.2.2'
-    id 'io.spring.dependency-management' version '1.1.4'
-}
-
-group = 'org.example'
-
-repositories {
-    mavenCentral()
+    id 'build-conventions'
 }
 
 ext {
-    mapstructVersion = "1.5.5.Final"
-    openapiVersion = "2.3.0"
+    starterProject = project(":aop-cache-spring-boot-starter").name
+    mainProject = project(":clevertec-house-person").name
 }
 
-dependencies {
-    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.liquibase:liquibase-core'
-    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${openapiVersion}"
-
-
-    runtimeOnly 'org.postgresql:postgresql'
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:postgresql'
+tasks.register('launch') {
+    dependsOn ordered(
+            'clean',
+            ":${starterProject}:publishToMavenLocal",
+            ":${mainProject}:bootRun"
+    )
 }
 
-test {
-    useJUnitPlatform()
+def ordered(String... dependencyPaths) {
+    def dependencies = dependencyPaths.collect { tasks.getByPath(it) }
+    for (int i = 0; i < dependencies.size() - 1; i++) {
+        dependencies[i + 1].mustRunAfter(dependencies[i])
+    }
+    return dependencies
 }

@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: -blank-
+    driverClassName: org.postgresql.Driver
+    username: postgres
+    password: postgres
+sakujj.cache:
+  isEnabled: false
